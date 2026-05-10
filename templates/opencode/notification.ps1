@@ -14,7 +14,7 @@ if (Test-Path $configFile) {
     try {
         $config = Get-Content $configFile -Raw | ConvertFrom-Json
         $seconds = [double]$config.durationSeconds
-        if ($seconds -ge 1 -and $seconds -le 60) { $displaySeconds = $seconds }
+        if ($seconds -gt 0) { $displaySeconds = $seconds }
     } catch {}
 }
 

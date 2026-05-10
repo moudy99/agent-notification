@@ -47,14 +47,20 @@ export async function checkboxPrompt(message, choices) {
 
   let cursor = 0;
   let renderedLines = 0;
+  let lastError = "";
   const selected = new Set(
     choices.map((choice, index) => (choice.checked ? index : -1)).filter((index) => index >= 0)
   );
 
   return new Promise((resolve, reject) => {
-    const render = (errorText = "") => {
+    const render = (errorText = lastError, full = false) => {
+      lastError = errorText;
       process.stdout.write("\x1b[?25l");
-      if (renderedLines > 0) {
+      if (full) {
+        clearTerminal(true);
+        writeLogo(title);
+        renderedLines = 0;
+      } else if (renderedLines > 0) {
         readline.moveCursor(process.stdout, 0, -renderedLines);
         readline.clearScreenDown(process.stdout);
       }
@@ -67,8 +73,11 @@ export async function checkboxPrompt(message, choices) {
     const cleanup = () => {
       process.stdin.setRawMode(false);
       process.stdin.off("keypress", onKeypress);
+      process.stdout.off("resize", onResize);
       process.stdout.write("\x1b[?25h");
     };
+
+    const onResize = () => render(lastError, true);
 
     const onKeypress = (_value, key) => {
       if (key.ctrl && key.name === "c") {
@@ -100,7 +109,6 @@ export async function checkboxPrompt(message, choices) {
           .map((choice, index) => (selected.has(index) ? choice.value : null))
           .filter(Boolean);
         cleanup();
-        process.stdout.write("\n");
         resolve(values);
         return;
       }
@@ -108,29 +116,86 @@ export async function checkboxPrompt(message, choices) {
       if (shouldRender) render();
     };
 
+    process.stdout.on("resize", onResize);
     process.stdin.on("keypress", onKeypress);
-    render();
+    render("", true);
   });
 }
 
 export async function numberPrompt(message, defaultValue, options = {}) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) return defaultValue;
 
-  const min = options.min ?? 1;
-  const max = options.max ?? 60;
+  const min = options.min ?? 0;
+  let input = "";
+  let renderedLines = 0;
+  let lastError = "";
 
-  while (true) {
-    const answer = await ask(`${message} (${min}-${max}, default ${defaultValue}): `);
-    const value = answer.trim();
-    if (!value) return defaultValue;
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
 
-    const parsed = Number(value);
-    if (Number.isInteger(parsed) && parsed >= min && parsed <= max) {
-      return parsed;
-    }
+  return new Promise((resolve, reject) => {
+    const render = (errorText = lastError, full = false) => {
+      lastError = errorText;
+      process.stdout.write("\x1b[?25l");
+      if (full) {
+        clearTerminal(true);
+        writeLogo(title);
+        renderedLines = 0;
+      } else if (renderedLines > 0) {
+        readline.moveCursor(process.stdout, 0, -renderedLines);
+        readline.clearScreenDown(process.stdout);
+      }
 
-    console.log(color("yellow", `Enter a whole number from ${min} to ${max}.`));
-  }
+      const lines = buildNumberPromptLines(message, input, defaultValue, min, errorText);
+      process.stdout.write(`${lines.join("\n")}\n`);
+      renderedLines = lines.length;
+    };
+
+    const cleanup = () => {
+      process.stdin.setRawMode(false);
+      process.stdin.off("keypress", onKeypress);
+      process.stdout.off("resize", onResize);
+      process.stdout.write("\x1b[?25h");
+    };
+
+    const onResize = () => render(lastError);
+
+    const onKeypress = (value, key) => {
+      if (key.ctrl && key.name === "c") {
+        cleanup();
+        reject(new Error("Installation cancelled."));
+        return;
+      }
+
+      if (key.name === "return") {
+        const parsed = input ? Number(input) : defaultValue;
+        if (Number.isFinite(parsed) && parsed > min) {
+          cleanup();
+          clearTerminal(true);
+          writeLogo(title);
+          resolve(parsed);
+          return;
+        }
+        render("Enter a positive number of seconds.");
+        return;
+      }
+
+      if (key.name === "backspace" || key.name === "delete") {
+        input = input.slice(0, -1);
+        render();
+        return;
+      }
+
+      if (/^\d$/.test(value ?? "") || (value === "." && input && !input.includes("."))) {
+        input += value;
+        render();
+      }
+    };
+
+    process.stdout.on("resize", onResize);
+    process.stdin.on("keypress", onKeypress);
+    render();
+  });
 }
 
 export async function confirmPrompt(message, defaultValue = false) {
@@ -165,9 +230,26 @@ function buildSelectionLines(message, choices, selected, cursor, errorText) {
   return lines;
 }
 
+function buildNumberPromptLines(message, input, defaultValue, min, errorText) {
+  const display = input || `${defaultValue}`;
+  const lines = [
+    "",
+    center(color("bold", message)),
+    center(color("dim", `Type seconds, then press ENTER. Default is ${defaultValue}s.`)),
+    "",
+    ...buildInputCard(`Duration: ${display} s`, "How long each toast stays on screen.")
+  ];
+
+  if (errorText) {
+    lines.push(center(color("yellow", errorText)));
+  }
+
+  return lines;
+}
+
 function buildChoiceCard(choice, state) {
-  const width = Math.min(Math.max(64, terminalColumns() - 14), 86);
-  const indent = " ".repeat(Math.max(0, Math.floor((terminalColumns() - width) / 2)));
+  const width = contentWidth();
+  const indent = indentFor(width);
   const border = `${indent}+${"-".repeat(width - 2)}+`;
   const pointer = state.focused ? ">" : " ";
   const mark = state.selected ? "[x]" : "[ ]";
@@ -177,8 +259,23 @@ function buildChoiceCard(choice, state) {
 
   return [
     border,
-    `${indent}| ${padRight(color(labelColor, color("bold", titleLine)), width - 4)} |`,
-    `${indent}| ${padRight(color("dim", description), width - 4)} |`,
+    `${indent}| ${formatCell(titleLine, width - 4, labelColor, true)} |`,
+    `${indent}| ${formatCell(description, width - 4, "dim")} |`,
+    border,
+    ""
+  ];
+}
+
+function buildInputCard(label, description) {
+  const width = contentWidth();
+  const indent = indentFor(width);
+  const border = `${indent}+${"-".repeat(width - 2)}+`;
+  const titleLine = `> ${label}`;
+
+  return [
+    border,
+    `${indent}| ${formatCell(titleLine, width - 4, "cyan", true)} |`,
+    `${indent}| ${formatCell(description, width - 4, "dim")} |`,
     border,
     ""
   ];
@@ -239,6 +336,27 @@ function getTopPadding(contentHeight) {
 
 function terminalColumns() {
   return process.stdout.columns || 90;
+}
+
+function contentWidth() {
+  return Math.max(36, Math.min(84, terminalColumns() - 4));
+}
+
+function indentFor(width) {
+  return " ".repeat(Math.max(0, Math.floor((terminalColumns() - width) / 2)));
+}
+
+function formatCell(value, width, colorName, bold = false) {
+  const fitted = fitText(value, width);
+  const styled = bold ? color(colorName, color("bold", fitted)) : color(colorName, fitted);
+  return padRight(styled, width);
+}
+
+function fitText(value, width) {
+  const text = String(value);
+  if (text.length <= width) return text;
+  if (width <= 3) return text.slice(0, width);
+  return `${text.slice(0, width - 3)}...`;
 }
 
 function padCenter(value, width) {

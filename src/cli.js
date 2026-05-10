@@ -63,9 +63,8 @@ async function selectTargets(options) {
 
 async function selectDuration(options) {
   if (options.durationSeconds) return options.durationSeconds;
-  return numberPrompt("How many seconds should each notification stay visible?", 5, {
-    min: 1,
-    max: 60
+  return numberPrompt("Notification display time", 5, {
+    min: 0
   });
 }
 
@@ -75,11 +74,11 @@ function parseDurationArg(argv) {
   if (!durationEquals && durationIndex === -1) return null;
 
   const raw = durationEquals ? durationEquals.slice("--duration=".length) : argv[durationIndex + 1];
-  if (!raw) throw new Error("--duration requires a value from 1 to 60.");
+  if (!raw) throw new Error("--duration requires a positive number of seconds.");
 
   const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 60) {
-    throw new Error("--duration must be a whole number from 1 to 60.");
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error("--duration must be a positive number of seconds.");
   }
   return parsed;
 }
