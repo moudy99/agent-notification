@@ -4,7 +4,7 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 
 const NOTIFY_FILE = join(tmpdir(), "opencode-notify.json");
-const WELCOME_BAT = join(homedir(), ".config", "opencode", "hooks", "welcome.bat");
+const NOTIFICATION_BAT = join(homedir(), ".config", "opencode", "hooks", "notification.bat");
 
 export const AgentNotification = async () => {
   return {
@@ -31,7 +31,7 @@ export const AgentNotification = async () => {
 function notify(payload) {
   try {
     writeFileSync(NOTIFY_FILE, JSON.stringify(payload), "utf8");
-    const child = spawn("cmd.exe", ["/c", WELCOME_BAT], {
+    const child = spawn("cmd.exe", ["/c", NOTIFICATION_BAT], {
       detached: true,
       stdio: "ignore",
       windowsHide: true

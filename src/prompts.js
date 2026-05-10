@@ -7,25 +7,33 @@ const colors = {
   green: "\x1b[32m",
   yellow: "\x1b[33m",
   magenta: "\x1b[35m",
-  bold: "\x1b[1m"
+  bold: "\x1b[1m",
+  white: "\x1b[37m"
 };
+
+const notificationBanner = buildStackedBanner(["AGENT", "NOTIFICATION"]);
 
 export function color(name, value) {
   return `${colors[name] ?? ""}${value}${colors.reset}`;
 }
 
 export async function showIntro(skipAnimation = false) {
-  const text = "AGENT NOTIFICATION";
-  process.stdout.write("\n");
   if (skipAnimation || !process.stdout.isTTY) {
-    process.stdout.write(`${color("magenta", color("bold", text))}\n\n`);
+    clearTerminal(true);
+    writeCenteredBanner(notificationBanner);
     return;
   }
-  for (let index = 1; index <= text.length; index += 1) {
-    process.stdout.write(`\r${color("magenta", color("bold", text.slice(0, index)))}`);
-    await delay(22);
+
+  const width = Math.max(...notificationBanner.map((line) => line.length));
+  for (let column = 1; column <= width; column += 2) {
+    clearTerminal(true);
+    writeCenteredBanner(notificationBanner.map((line) => line.slice(0, column)));
+    await delay(18);
   }
-  process.stdout.write(`\n${color("dim", "Desktop notifications for coding agents")}\n\n`);
+
+  clearTerminal(true);
+  writeCenteredBanner(notificationBanner);
+  await delay(180);
 }
 
 export async function checkboxPrompt(message, choices) {
@@ -44,13 +52,18 @@ export async function checkboxPrompt(message, choices) {
   return new Promise((resolve, reject) => {
     const render = (errorText = "") => {
       process.stdout.write("\x1b[?25l");
-      process.stdout.write("\x1b[2J\x1b[0f");
-      process.stdout.write(`${color("bold", message)}\n`);
-      process.stdout.write(`${color("dim", "Use ↑/↓, space to toggle, enter to confirm")}\n\n`);
+      clearTerminal();
+      writeCenteredBanner(notificationBanner, 1);
+      writeCentered(color("dim", "Desktop notifications for coding agents"));
+      process.stdout.write("\n");
+      writeCentered(color("bold", message));
+      writeCentered(color("dim", "SPACE toggle    ENTER install    CTRL+C cancel"));
+      process.stdout.write("\n");
       choices.forEach((choice, index) => {
-        const pointer = index === cursor ? color("cyan", "›") : " ";
-        const mark = selected.has(index) ? color("green", "●") : "○";
-        process.stdout.write(`${pointer} ${mark} ${choice.label}\n`);
+        writeChoiceCard(choice, {
+          focused: index === cursor,
+          selected: selected.has(index)
+        });
       });
       if (errorText) process.stdout.write(`\n${color("yellow", errorText)}\n`);
     };
@@ -67,11 +80,19 @@ export async function checkboxPrompt(message, choices) {
         reject(new Error("Installation cancelled."));
         return;
       }
-      if (key.name === "up") cursor = (cursor - 1 + choices.length) % choices.length;
-      if (key.name === "down") cursor = (cursor + 1) % choices.length;
+      let shouldRender = false;
+      if (key.name === "up") {
+        cursor = (cursor - 1 + choices.length) % choices.length;
+        shouldRender = true;
+      }
+      if (key.name === "down") {
+        cursor = (cursor + 1) % choices.length;
+        shouldRender = true;
+      }
       if (key.name === "space") {
         if (selected.has(cursor)) selected.delete(cursor);
         else selected.add(cursor);
+        shouldRender = true;
       }
       if (key.name === "return") {
         if (selected.size === 0) {
@@ -82,11 +103,11 @@ export async function checkboxPrompt(message, choices) {
           .map((choice, index) => (selected.has(index) ? choice.value : null))
           .filter(Boolean);
         cleanup();
-        process.stdout.write("\x1b[2J\x1b[0f");
+        clearTerminal(true);
         resolve(values);
         return;
       }
-      render();
+      if (shouldRender) render();
     };
 
     process.stdin.on("keypress", onKeypress);
@@ -116,4 +137,87 @@ function ask(question) {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildBanner(text) {
+  const letters = {
+    A: [" ### ", "#   #", "#####", "#   #", "#   #"],
+    C: [" ####", "#    ", "#    ", "#    ", " ####"],
+    E: ["#####", "#    ", "#### ", "#    ", "#####"],
+    F: ["#####", "#    ", "#### ", "#    ", "#    "],
+    G: [" ####", "#    ", "#  ##", "#   #", " ####"],
+    I: ["#####", "  #  ", "  #  ", "  #  ", "#####"],
+    N: ["#   #", "##  #", "# # #", "#  ##", "#   #"],
+    O: [" ### ", "#   #", "#   #", "#   #", " ### "],
+    T: ["#####", "  #  ", "  #  ", "  #  ", "  #  "]
+  };
+
+  const rows = ["", "", "", "", ""];
+  for (const character of text) {
+    const pattern = character === " " ? ["     ", "     ", "     ", "     ", "     "] : letters[character] ?? ["     ", "     ", "     ", "     ", "     "];
+    pattern.forEach((line, index) => {
+      rows[index] += `${line} `;
+    });
+  }
+  return rows.map((line) => line.trimEnd());
+}
+
+function buildStackedBanner(lines) {
+  return lines.flatMap((line, index) => {
+    const banner = buildBanner(line);
+    return index === 0 ? [...banner, ""] : banner;
+  });
+}
+
+function writeCenteredBanner(lines, topPadding = getTopPadding(lines.length + 8)) {
+  process.stdout.write("\n".repeat(topPadding));
+  lines.forEach((line) => {
+    if (!line) process.stdout.write("\n");
+    else writeCentered(color("magenta", color("bold", line)));
+  });
+  process.stdout.write("\n");
+}
+
+function writeChoiceCard(choice, state) {
+  const width = Math.min(Math.max(64, terminalColumns() - 14), 86);
+  const indent = " ".repeat(Math.max(0, Math.floor((terminalColumns() - width) / 2)));
+  const top = `${state.focused ? ">" : " "} ${state.selected ? "[x]" : "[ ]"}  ${choice.label.toUpperCase()}`;
+  const description = choice.description ?? "";
+  const border = `${indent}+${"-".repeat(width - 2)}+`;
+  const labelColor = state.focused ? "cyan" : state.selected ? "green" : "white";
+  process.stdout.write(`${border}\n`);
+  process.stdout.write(`${indent}| ${padRight(color(labelColor, color("bold", top)), width - 4)} |\n`);
+  process.stdout.write(`${indent}| ${padRight(color("dim", description), width - 4)} |\n`);
+  process.stdout.write(`${border}\n\n`);
+}
+
+function writeCentered(value) {
+  const plain = stripAnsi(value);
+  const padding = Math.max(0, Math.floor((terminalColumns() - plain.length) / 2));
+  process.stdout.write(`${" ".repeat(padding)}${value}\n`);
+}
+
+function clearTerminal(clearScrollback = false) {
+  if (!process.stdout.isTTY) return;
+  if (clearScrollback) process.stdout.write("\x1b[3J");
+  readline.cursorTo(process.stdout, 0, 0);
+  readline.clearScreenDown(process.stdout);
+}
+
+function getTopPadding(contentHeight) {
+  const rows = process.stdout.rows || 28;
+  return Math.max(1, Math.floor((rows - contentHeight) / 3));
+}
+
+function terminalColumns() {
+  return process.stdout.columns || 90;
+}
+
+function padRight(value, width) {
+  const plainLength = stripAnsi(value).length;
+  return `${value}${" ".repeat(Math.max(0, width - plainLength))}`;
+}
+
+function stripAnsi(value) {
+  return String(value).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
 }

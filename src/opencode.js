@@ -17,18 +17,18 @@ export async function installOpenCode(options = {}) {
     },
     {
       label: "OpenCode PowerShell toast",
-      source: templatePath("opencode", "welcome.ps1"),
-      destination: join(paths.opencode.hooks, "welcome.ps1")
+      source: templatePath("opencode", "notification.ps1"),
+      destination: join(paths.opencode.hooks, "notification.ps1")
     },
     {
       label: "OpenCode batch launcher",
-      source: templatePath("opencode", "welcome.bat"),
-      destination: join(paths.opencode.hooks, "welcome.bat")
+      source: templatePath("opencode", "notification.bat"),
+      destination: join(paths.opencode.hooks, "notification.bat")
     },
     {
       label: "OpenCode hidden spawner",
-      source: templatePath("opencode", "welcome.vbs"),
-      destination: join(paths.opencode.hooks, "welcome.vbs")
+      source: templatePath("opencode", "notification.vbs"),
+      destination: join(paths.opencode.hooks, "notification.vbs")
     }
   ];
 

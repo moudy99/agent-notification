@@ -1,73 +1,117 @@
 # Agent Notification
 
-Windows desktop notifications for Claude Code and OpenCode.
+Beautiful Windows toast notifications for **OpenCode** and **Claude Code**.
 
-The installer copies local hook files into the current user's config folders and configures the selected agent integrations. It does not call any remote service at runtime.
+Run one command, choose the agents you use, and the installer adds the local notification hooks for you.
 
-## Usage
-
-From GitHub:
-
-```bash
-npx github:moudy99/agent-notification
-```
-
-After publishing to npm:
+## Install And Run
 
 ```bash
 npx @moudy99/agent-notification
 ```
 
-The CLI lets you select one or both integrations:
+The CLI opens an interactive installer:
 
-- OpenCode
-- Claude Code
+```text
+AGENT NOTIFICATION
 
-## What Gets Installed
+Select agents to install notifications for:
 
-OpenCode:
+[ ] OpenCode
+[ ] Claude Code
+```
+
+Use:
+
+```text
+SPACE  toggle
+ENTER  install
+CTRL+C cancel
+```
+
+You can select **OpenCode**, **Claude Code**, or both.
+
+## Direct Commands
+
+Install both without the selector:
+
+```bash
+npx @moudy99/agent-notification --all
+```
+
+Install only OpenCode:
+
+```bash
+npx @moudy99/agent-notification --opencode
+```
+
+Install only Claude Code:
+
+```bash
+npx @moudy99/agent-notification --claude
+```
+
+Overwrite existing files without asking:
+
+```bash
+npx @moudy99/agent-notification --all --yes
+```
+
+## What It Installs
+
+### OpenCode
 
 ```text
 ~/.config/opencode/plugins/plan-complete-notify.js
-~/.config/opencode/hooks/welcome.ps1
-~/.config/opencode/hooks/welcome.bat
-~/.config/opencode/hooks/welcome.vbs
+~/.config/opencode/hooks/notification.ps1
+~/.config/opencode/hooks/notification.bat
+~/.config/opencode/hooks/notification.vbs
 ```
 
-Claude Code:
+Notifications fire when:
+
+- OpenCode completes a response.
+- OpenCode asks a plan-mode question.
+- OpenCode needs permission to continue.
+
+Restart OpenCode after installing.
+
+### Claude Code
 
 ```text
-~/.claude/hooks/welcome.ps1
-~/.claude/hooks/welcome.bat
+~/.claude/hooks/notification.ps1
+~/.claude/hooks/notification.bat
 ~/.claude/settings.json
 ```
 
-## Behavior
+The installer adds these hook events:
 
-OpenCode notifications fire when:
+- `Stop`
+- `Notification`
 
-- The agent completes a response.
-- The agent asks a question, including plan-mode questions.
-- The agent needs permission to continue.
+It does **not** add `SubagentStop`, so subagent completions do not trigger premature notifications.
 
-Claude Code notifications fire when:
-
-- The main agent completes a response.
-- Claude Code is waiting for user input or permission.
-
-Subagent completion notifications are not installed.
+Restart Claude Code after installing.
 
 ## Safety
 
 - Windows-only.
-- Uses PowerShell WPF notifications.
-- Writes only to user-level config folders.
-- Backs up `~/.claude/settings.json` before modifying it.
-- Prompts before overwriting existing hook files.
+- Uses local PowerShell WPF toast windows.
 - No runtime network calls.
+- Writes only to your user config folders.
+- Asks before overwriting existing hook files.
+- Backs up `~/.claude/settings.json` before editing.
+- Removes old package-installed `welcome.ps1` Claude hook entries to avoid duplicate notifications.
 
 ## Requirements
 
 - Windows
 - Node.js 18+
 - PowerShell
+
+## Publish A New Version
+
+```bash
+npm version patch
+npm publish --access public
+```

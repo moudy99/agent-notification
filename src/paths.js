@@ -14,8 +14,8 @@ export const paths = {
     root: join(home, ".claude"),
     hooks: join(home, ".claude", "hooks"),
     settings: join(home, ".claude", "settings.json"),
-    welcomePs1: join(home, ".claude", "hooks", "welcome.ps1"),
-    welcomeBat: join(home, ".claude", "hooks", "welcome.bat")
+    notificationPs1: join(home, ".claude", "hooks", "notification.ps1"),
+    notificationBat: join(home, ".claude", "hooks", "notification.bat")
   },
   opencode: {
     root: join(home, ".config", "opencode"),

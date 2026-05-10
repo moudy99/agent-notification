@@ -20,13 +20,13 @@ export async function installClaude(options = {}) {
   const files = [
     {
       label: "Claude PowerShell toast",
-      source: templatePath("claude", "welcome.ps1"),
-      destination: join(paths.claude.hooks, "welcome.ps1")
+      source: templatePath("claude", "notification.ps1"),
+      destination: join(paths.claude.hooks, "notification.ps1")
     },
     {
       label: "Claude batch launcher",
-      source: templatePath("claude", "welcome.bat"),
-      destination: join(paths.claude.hooks, "welcome.bat")
+      source: templatePath("claude", "notification.bat"),
+      destination: join(paths.claude.hooks, "notification.bat")
     }
   ];
 
@@ -45,6 +45,7 @@ async function mergeClaudeSettings() {
   const settings = exists ? await readJsonFile(settingsPath) : {};
 
   settings.hooks = isObject(settings.hooks) ? settings.hooks : {};
+  removeLegacyWelcomeHooks(settings);
   ensureHook(settings, "Stop", "Response complete — notifying...");
   ensureHook(settings, "Notification", "Claude is waiting for input — notifying...");
 
@@ -56,7 +57,7 @@ async function mergeClaudeSettings() {
 }
 
 function ensureHook(settings, eventName, statusMessage) {
-  const command = `& '${escapePowerShellSingleQuoted(paths.claude.welcomePs1)}'`;
+  const command = `& '${escapePowerShellSingleQuoted(paths.claude.notificationPs1)}'`;
   const hook = {
     type: "command",
     command,
@@ -77,6 +78,28 @@ function ensureHook(settings, eventName, statusMessage) {
   }
 
   settings.hooks[eventName].push({ hooks: [hook] });
+}
+
+function removeLegacyWelcomeHooks(settings) {
+  for (const eventName of ["Stop", "Notification"]) {
+    if (!Array.isArray(settings.hooks[eventName])) continue;
+
+    settings.hooks[eventName] = settings.hooks[eventName]
+      .map((group) => {
+        if (!isObject(group) || !Array.isArray(group.hooks)) return group;
+        return {
+          ...group,
+          hooks: group.hooks.filter((hook) => !isLegacyWelcomeCommand(hook))
+        };
+      })
+      .filter((group) => !isObject(group) || !Array.isArray(group.hooks) || group.hooks.length > 0);
+  }
+}
+
+function isLegacyWelcomeCommand(hook) {
+  if (!isObject(hook) || typeof hook.command !== "string") return false;
+  const command = hook.command.toLowerCase().replaceAll("/", "\\");
+  return command.includes("\\.claude\\hooks\\welcome.ps1");
 }
 
 function escapePowerShellSingleQuoted(value) {

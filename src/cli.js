@@ -43,7 +43,17 @@ async function selectTargets(options) {
   if (selected.length > 0) return selected;
 
   return checkboxPrompt("Select agents to install notifications for:", [
-    { label: "OpenCode", value: "opencode", checked: false },
-    { label: "Claude Code", value: "claude", checked: false }
+    {
+      label: "OpenCode",
+      value: "opencode",
+      checked: false,
+      description: "Response complete, plan questions, and permission prompts"
+    },
+    {
+      label: "Claude Code",
+      value: "claude",
+      checked: false,
+      description: "Stop and Notification hooks for main-agent responses"
+    }
   ]);
 }
