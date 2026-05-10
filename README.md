@@ -1,8 +1,15 @@
 # Agent Notification
 
+[![npm version](https://img.shields.io/npm/v/@moudy99/agent-notification.svg)](https://www.npmjs.com/package/@moudy99/agent-notification)
+[![npm downloads](https://img.shields.io/npm/dm/@moudy99/agent-notification.svg)](https://www.npmjs.com/package/@moudy99/agent-notification)
+[![GitHub repo](https://img.shields.io/badge/GitHub-moudy99%2Fagent--notification-181717?logo=github)](https://github.com/moudy99/agent-notification)
+
 Beautiful Windows toast notifications for **OpenCode** and **Claude Code**.
 
 Run one command, choose the agents you use, and the installer adds the local notification hooks for you.
+
+- npm: [`@moudy99/agent-notification`](https://www.npmjs.com/package/@moudy99/agent-notification)
+- GitHub: [`moudy99/agent-notification`](https://github.com/moudy99/agent-notification)
 
 ## Install And Run
 

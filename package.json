@@ -1,7 +1,15 @@
 {
   "name": "@moudy99/agent-notification",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Windows desktop notifications for Claude Code and OpenCode.",
+  "homepage": "https://github.com/moudy99/agent-notification#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moudy99/agent-notification.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moudy99/agent-notification/issues"
+  },
   "type": "module",
   "bin": {
     "agent-notification": "bin/agent-notification.js"
