@@ -1,0 +1,31 @@
+{
+  "name": "@moudy99/agent-notification",
+  "version": "1.0.0",
+  "description": "Windows desktop notifications for Claude Code and OpenCode.",
+  "type": "module",
+  "bin": {
+    "agent-notification": "./bin/agent-notification.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node ./bin/agent-notification.js",
+    "check": "node --check ./bin/agent-notification.js && node --check ./src/cli.js && node --check ./src/installer.js && node --check ./src/prompts.js && node --check ./src/paths.js && node --check ./src/claude.js && node --check ./src/opencode.js"
+  },
+  "keywords": [
+    "opencode",
+    "claude-code",
+    "notification",
+    "hooks",
+    "windows"
+  ],
+  "author": "moudy99",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
