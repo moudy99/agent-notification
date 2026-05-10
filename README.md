@@ -5,9 +5,10 @@
 [![GitHub repo](https://img.shields.io/badge/GitHub-moudy99%2Fagent--notification-181717?logo=github)](https://github.com/moudy99/agent-notification)
 
 Beautiful Windows toast notifications for **OpenCode** and **Claude Code**.
-<img width="1920" height="1080" alt="openCode" src="https://github.com/user-attachments/assets/5c761c27-e9bc-4105-b6c6-5135032804a2" />
-<img width="1920" height="1080" alt="agent notification" src="https://github.com/user-attachments/assets/65693910-e135-4f26-8cf3-d5c6e20e4688" />
 
+![OpenCode notification](https://raw.githubusercontent.com/moudy99/agent-notification/main/asset/openCode.gif)
+
+![Agent Notification CLI](https://raw.githubusercontent.com/moudy99/agent-notification/main/asset/agent%20notification.gif)
 
 Run one command, choose the agents you use, and the installer adds the local notification hooks for you.
 
@@ -38,8 +39,8 @@ SPACE  toggle
 ENTER  install
 CTRL+C cancel
 ```
-<img width="1920" height="1080" alt="agetn-notification-install" src="https://github.com/user-attachments/assets/bd742fb0-b0a5-46db-81e8-24e3c13602f2" />
 
+![Agent Notification install](https://raw.githubusercontent.com/moudy99/agent-notification/main/asset/agetn-notification-install.gif)
 
 You can select **OpenCode**, **Claude Code**, or both.
 
