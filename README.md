@@ -109,7 +109,40 @@ Restart Claude Code after installing.
 - Node.js 18+
 - PowerShell
 
-## Publish A New Version
+## Automatic npm Publish
+
+This repository includes a GitHub Actions workflow that publishes to npm when you push to `main` with a new package version.
+
+Add this GitHub repository secret first:
+
+```text
+NPM_TOKEN
+```
+
+Create the token in npm:
+
+```text
+npmjs.com → Access Tokens → Granular Access Token
+```
+
+Recommended token settings:
+
+- Read and write access
+- Package access for `@moudy99/agent-notification`
+- Bypass 2FA enabled if your npm account requires it
+
+Then publish a new version by pushing a version bump:
+
+```bash
+npm version patch --no-git-tag-version
+git add .
+git commit -m "Release v1.0.3"
+git push
+```
+
+The workflow checks npm first. If that version already exists, it skips publishing instead of failing.
+
+## Manual npm Publish
 
 ```bash
 npm version patch
