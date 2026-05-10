@@ -35,6 +35,11 @@ export async function installClaude(options = {}) {
     printCopyResult(file.label, result);
   }
 
+  await writeJsonFile(join(paths.claude.hooks, "notification-config.json"), {
+    durationSeconds: options.durationSeconds ?? 5
+  });
+  console.log(`${color("green", "✓")} Claude notification duration ${color("dim", `${options.durationSeconds ?? 5}s`)}`);
+
   await mergeClaudeSettings();
   console.log(color("dim", "Restart Claude Code to activate hooks."));
 }

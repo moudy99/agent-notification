@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { copyTemplateFile, ensureDirectory, printCopyResult } from "./installer.js";
+import { copyTemplateFile, ensureDirectory, printCopyResult, writeJsonFile } from "./installer.js";
 import { paths, templatePath } from "./paths.js";
 import { color } from "./prompts.js";
 
@@ -36,6 +36,11 @@ export async function installOpenCode(options = {}) {
     const result = await copyTemplateFile(file.source, file.destination, options);
     printCopyResult(file.label, result);
   }
+
+  await writeJsonFile(join(paths.opencode.hooks, "notification-config.json"), {
+    durationSeconds: options.durationSeconds ?? 5
+  });
+  console.log(`${color("green", "✓")} OpenCode notification duration ${color("dim", `${options.durationSeconds ?? 5}s`)}`);
 
   console.log(color("dim", "Restart OpenCode to load the plugin."));
 }

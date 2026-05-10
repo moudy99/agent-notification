@@ -7,6 +7,16 @@ Add-Type -AssemblyName WindowsBase
 $titleText = "OPENCODE"
 $bodyText  = "opencode complete response"
 $attributionText = "AI coding agent"
+$displaySeconds = 5
+
+$configFile = Join-Path $PSScriptRoot "notification-config.json"
+if (Test-Path $configFile) {
+    try {
+        $config = Get-Content $configFile -Raw | ConvertFrom-Json
+        $seconds = [double]$config.durationSeconds
+        if ($seconds -ge 1 -and $seconds -le 60) { $displaySeconds = $seconds }
+    } catch {}
+}
 
 $notifyFile = Join-Path $env:TEMP "opencode-notify.json"
 if (Test-Path $notifyFile) {
@@ -30,6 +40,7 @@ $rs.Open()
 $rs.SessionStateProxy.SetVariable('titleText', $titleText)
 $rs.SessionStateProxy.SetVariable('bodyText', $bodyText)
 $rs.SessionStateProxy.SetVariable('attributionText', $attributionText)
+$rs.SessionStateProxy.SetVariable('displaySeconds', $displaySeconds)
 
 $ps = [System.Management.Automation.PowerShell]::Create()
 $ps.Runspace = $rs
@@ -127,7 +138,7 @@ $ps.Runspace = $rs
         $win.BeginAnimation([System.Windows.Window]::OpacityProperty, $fadeIn)
 
         $t = [System.Windows.Threading.DispatcherTimer]::new()
-        $t.Interval = [TimeSpan]::FromSeconds(5)
+        $t.Interval = [TimeSpan]::FromSeconds($displaySeconds)
         $t.Add_Tick({
             $fadeOut = [System.Windows.Media.Animation.DoubleAnimation]::new()
             $fadeOut.From = 1

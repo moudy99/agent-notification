@@ -7,6 +7,16 @@ try { $payload = $stdin | ConvertFrom-Json } catch {}
 $titleText = "Claude Code"
 $bodyText  = "Claude has responded."
 $isNotification = $payload -and $payload.hook_event_name -eq "Notification"
+$displaySeconds = 5
+
+$configFile = Join-Path $PSScriptRoot "notification-config.json"
+if (Test-Path $configFile) {
+    try {
+        $config = Get-Content $configFile -Raw | ConvertFrom-Json
+        $seconds = [double]$config.durationSeconds
+        if ($seconds -ge 1 -and $seconds -le 60) { $displaySeconds = $seconds }
+    } catch {}
+}
 
 if ($isNotification) {
     $msg = "$($payload.message)"
@@ -63,6 +73,7 @@ $rs.ThreadOptions  = [System.Management.Automation.Runspaces.PSThreadOptions]::R
 $rs.Open()
 $rs.SessionStateProxy.SetVariable('titleText', $titleText)
 $rs.SessionStateProxy.SetVariable('bodyText',  $bodyText)
+$rs.SessionStateProxy.SetVariable('displaySeconds', $displaySeconds)
 
 $ps = [System.Management.Automation.PowerShell]::Create()
 $ps.Runspace = $rs
@@ -159,7 +170,7 @@ $ps.Runspace = $rs
         $win.BeginAnimation([System.Windows.Window]::OpacityProperty, $fadeIn)
 
         $t = [System.Windows.Threading.DispatcherTimer]::new()
-        $t.Interval = [TimeSpan]::FromSeconds(5)
+        $t.Interval = [TimeSpan]::FromSeconds($displaySeconds)
         $t.Add_Tick({
             $fadeOut = [System.Windows.Media.Animation.DoubleAnimation]::new()
             $fadeOut.From     = 1

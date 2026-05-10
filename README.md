@@ -31,6 +31,8 @@ CTRL+C cancel
 
 You can select **OpenCode**, **Claude Code**, or both.
 
+After selecting agents, enter how many seconds each notification should stay visible.
+
 ## Direct Commands
 
 Install both without the selector:
@@ -57,6 +59,12 @@ Overwrite existing files without asking:
 npx @moudy99/agent-notification --all --yes
 ```
 
+Set the notification duration directly:
+
+```bash
+npx @moudy99/agent-notification --all --duration=10
+```
+
 ## What It Installs
 
 ### OpenCode
@@ -66,6 +74,7 @@ npx @moudy99/agent-notification --all --yes
 ~/.config/opencode/hooks/notification.ps1
 ~/.config/opencode/hooks/notification.bat
 ~/.config/opencode/hooks/notification.vbs
+~/.config/opencode/hooks/notification-config.json
 ```
 
 Notifications fire when:
@@ -81,6 +90,7 @@ Restart OpenCode after installing.
 ```text
 ~/.claude/hooks/notification.ps1
 ~/.claude/hooks/notification.bat
+~/.claude/hooks/notification-config.json
 ~/.claude/settings.json
 ```
 
@@ -102,6 +112,7 @@ Restart Claude Code after installing.
 - Asks before overwriting existing hook files.
 - Backs up `~/.claude/settings.json` before editing.
 - Removes old package-installed `welcome.ps1` Claude hook entries to avoid duplicate notifications.
+- Stores only the notification display duration in `notification-config.json`.
 
 ## Requirements
 
@@ -136,7 +147,7 @@ Then publish a new version by pushing a version bump:
 ```bash
 npm version patch --no-git-tag-version
 git add .
-git commit -m "Release v1.0.3"
+git commit -m "Release v1.0.4"
 git push
 ```
 

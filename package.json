@@ -1,6 +1,6 @@
 {
   "name": "@moudy99/agent-notification",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Windows desktop notifications for Claude Code and OpenCode.",
   "type": "module",
   "bin": {
