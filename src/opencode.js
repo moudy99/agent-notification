@@ -26,6 +26,11 @@ export async function installOpenCode(options = {}) {
       label: "OpenCode PowerShell toast",
       source: templatePath("opencode", "notification.ps1"),
       destination: join(paths.opencode.hooks, "notification.ps1")
+    },
+    {
+      label: "OpenCode batch launcher",
+      source: templatePath("opencode", "notification.bat"),
+      destination: join(paths.opencode.hooks, "notification.bat")
     }
   ];
 
@@ -39,7 +44,7 @@ export async function installOpenCode(options = {}) {
   });
   console.log(`${color("green", "✓")} OpenCode notification duration ${color("dim", `${options.durationSeconds ?? 5}s`)}`);
 
-  const obsoleteFiles = ["notification.bat", "notification.vbs"];
+  const obsoleteFiles = ["notification.vbs"];
   for (const obsoleteFile of obsoleteFiles) {
     const result = await removeFileIfExists(join(paths.opencode.hooks, obsoleteFile));
     printRemoveResult(`OpenCode obsolete ${obsoleteFile}`, result);

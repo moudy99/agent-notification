@@ -84,6 +84,7 @@ npx @moudy99/agent-notification --all --duration=10
 ```text
 ~/.config/opencode/plugins/plan-complete-notify.js
 ~/.config/opencode/hooks/notification.ps1
+~/.config/opencode/hooks/notification.bat
 ~/.config/opencode/hooks/notification-config.json
 ```
 
@@ -126,5 +127,5 @@ Restart Claude Code after installing.
 
 ## Version
 
-Current package version: `1.0.10`
+Current package version: `1.0.12`
 
