@@ -21,6 +21,21 @@ export async function copyTemplateFile(source, destination, options = {}) {
   return { destination, action: exists ? "updated" : "created" };
 }
 
+export async function writeTextFile(content, destination, options = {}) {
+  await ensureDirectory(dirname(destination));
+
+  const exists = await pathExists(destination);
+  if (exists && !options.yes) {
+    const shouldOverwrite = await confirmPrompt(`${basename(destination)} already exists. Overwrite?`, false);
+    if (!shouldOverwrite) {
+      return { destination, action: "skipped" };
+    }
+  }
+
+  await fs.writeFile(destination, content, "utf8");
+  return { destination, action: exists ? "updated" : "created" };
+}
+
 export async function readJsonFile(path) {
   const content = await fs.readFile(path, "utf8");
   return JSON.parse(content);

@@ -1,7 +1,9 @@
 import { join } from "node:path";
-import { copyTemplateFile, ensureDirectory, printCopyResult, writeJsonFile } from "./installer.js";
+import { copyTemplateFile, writeTextFile, ensureDirectory, printCopyResult, writeJsonFile } from "./installer.js";
 import { paths, templatePath } from "./paths.js";
 import { color } from "./prompts.js";
+
+const NOTIFICATION_VBS_CONTENT = `Set objShell = CreateObject("WScript.Shell")\r\nobjShell.Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -Sta -WindowStyle Hidden -File """ & Replace(WScript.ScriptFullName, "notification.vbs", "notification.ps1") & """", 0, False\r\n`;
 
 export async function installOpenCode(options = {}) {
   console.log(color("cyan", "\nInstalling OpenCode notification..."));
@@ -25,17 +27,15 @@ export async function installOpenCode(options = {}) {
       source: templatePath("opencode", "notification.bat"),
       destination: join(paths.opencode.hooks, "notification.bat")
     },
-    {
-      label: "OpenCode hidden spawner",
-      source: templatePath("opencode", "notification.vbs"),
-      destination: join(paths.opencode.hooks, "notification.vbs")
-    }
   ];
 
   for (const file of files) {
     const result = await copyTemplateFile(file.source, file.destination, options);
     printCopyResult(file.label, result);
   }
+
+  const vbsResult = await writeTextFile(NOTIFICATION_VBS_CONTENT, join(paths.opencode.hooks, "notification.vbs"), options);
+  printCopyResult("OpenCode hidden spawner", vbsResult);
 
   await writeJsonFile(join(paths.opencode.hooks, "notification-config.json"), {
     durationSeconds: options.durationSeconds ?? 5
