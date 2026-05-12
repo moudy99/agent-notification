@@ -133,5 +133,3 @@ Restart Claude Code after installing.
 ## Version
 
 Current package version: `1.0.14`
-Current package version: `1.0.12`
-
