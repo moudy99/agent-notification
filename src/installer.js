@@ -31,6 +31,12 @@ export async function writeJsonFile(path, value) {
   await fs.writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+export async function removeFileIfExists(path) {
+  if (!(await pathExists(path))) return { destination: path, action: "missing" };
+  await fs.rm(path, { force: true });
+  return { destination: path, action: "removed" };
+}
+
 export async function backupFile(path) {
   if (!(await pathExists(path))) return null;
   const backupPath = `${path}.bak-${timestamp()}`;
@@ -50,6 +56,11 @@ export async function pathExists(path) {
 export function printCopyResult(label, result) {
   const mark = result.action === "skipped" ? color("yellow", "-") : color("green", "✓");
   console.log(`${mark} ${label} ${color("dim", result.action)}`);
+}
+
+export function printRemoveResult(label, result) {
+  if (result.action === "missing") return;
+  console.log(`${color("green", "✓")} ${label} ${color("dim", result.action)}`);
 }
 
 function timestamp() {

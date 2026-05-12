@@ -1,5 +1,12 @@
 import { join } from "node:path";
-import { copyTemplateFile, ensureDirectory, printCopyResult, writeJsonFile } from "./installer.js";
+import {
+  copyTemplateFile,
+  ensureDirectory,
+  printCopyResult,
+  printRemoveResult,
+  removeFileIfExists,
+  writeJsonFile
+} from "./installer.js";
 import { paths, templatePath } from "./paths.js";
 import { color } from "./prompts.js";
 
@@ -19,16 +26,6 @@ export async function installOpenCode(options = {}) {
       label: "OpenCode PowerShell toast",
       source: templatePath("opencode", "notification.ps1"),
       destination: join(paths.opencode.hooks, "notification.ps1")
-    },
-    {
-      label: "OpenCode batch launcher",
-      source: templatePath("opencode", "notification.bat"),
-      destination: join(paths.opencode.hooks, "notification.bat")
-    },
-    {
-      label: "OpenCode hidden spawner",
-      source: templatePath("opencode", "notification.vbs"),
-      destination: join(paths.opencode.hooks, "notification.vbs")
     }
   ];
 
@@ -41,6 +38,12 @@ export async function installOpenCode(options = {}) {
     durationSeconds: options.durationSeconds ?? 5
   });
   console.log(`${color("green", "✓")} OpenCode notification duration ${color("dim", `${options.durationSeconds ?? 5}s`)}`);
+
+  const obsoleteFiles = ["notification.bat", "notification.vbs"];
+  for (const obsoleteFile of obsoleteFiles) {
+    const result = await removeFileIfExists(join(paths.opencode.hooks, obsoleteFile));
+    printRemoveResult(`OpenCode obsolete ${obsoleteFile}`, result);
+  }
 
   console.log(color("dim", "Restart OpenCode to load the plugin."));
 }
