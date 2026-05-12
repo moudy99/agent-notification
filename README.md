@@ -9,11 +9,10 @@ Beautiful Windows toast notifications for **OpenCode** and **Claude Code**.
 <img width="1920" height="1080" alt="agent notification" src="https://github.com/user-attachments/assets/65693910-e135-4f26-8cf3-d5c6e20e4688" />
 
 
-Run one command, choose the agents you use, and the installer adds the local notification hooks for you.
-
-On Windows, the installer requests administrator permission before copying hook files. This helps Windows allow the script launcher files to be installed correctly.
+Run one command, choose the agents you use, and the installer adds the local notification hooks for your current Windows user.
 
 If Windows blocks copying the OpenCode VBS launcher from the npm cache, the installer generates that launcher locally as a fallback.
+If the launcher is later removed by Windows security tools, the OpenCode batch launcher recreates it before showing the notification.
 
 - npm: [`@moudy99/agent-notification`](https://www.npmjs.com/package/@moudy99/agent-notification)
 - GitHub: [`moudy99/agent-notification`](https://github.com/moudy99/agent-notification)
@@ -132,4 +131,4 @@ Restart Claude Code after installing.
 
 ## Version
 
-Current package version: `1.0.14`
+Current package version: `1.0.16`
