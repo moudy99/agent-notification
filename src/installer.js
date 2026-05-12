@@ -17,7 +17,14 @@ export async function copyTemplateFile(source, destination, options = {}) {
     }
   }
 
-  await fs.copyFile(source, destination);
+  try {
+    await fs.copyFile(source, destination);
+  } catch (error) {
+    if (!options.fallbackContent) throw error;
+    await fs.writeFile(destination, options.fallbackContent, "utf8");
+    return { destination, action: exists ? "generated" : "created" };
+  }
+
   return { destination, action: exists ? "updated" : "created" };
 }
 

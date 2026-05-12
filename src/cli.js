@@ -1,3 +1,4 @@
+import { isAdministrator, relaunchAsAdministrator } from "./elevation.js";
 import { installClaude } from "./claude.js";
 import { installOpenCode } from "./opencode.js";
 import { checkboxPrompt, color, numberPrompt, showIntro } from "./prompts.js";
@@ -7,6 +8,12 @@ export async function runCli(argv = process.argv.slice(2)) {
 
   if (process.platform !== "win32") {
     throw new Error("Agent Notification currently supports Windows only.");
+  }
+
+  if (!options.elevated && !options.noElevate && !isAdministrator()) {
+    console.log("Requesting administrator permission to install notification hooks...");
+    relaunchAsAdministrator(argv);
+    return;
   }
 
   await showIntro(options.noAnimation);
@@ -33,6 +40,8 @@ function parseArgs(argv) {
     all: argv.includes("--all"),
     yes: argv.includes("--yes") || argv.includes("-y"),
     noAnimation: argv.includes("--no-animation"),
+    noElevate: argv.includes("--no-elevate"),
+    elevated: argv.includes("--elevated"),
     durationSeconds: parseDurationArg(argv)
   };
 }
