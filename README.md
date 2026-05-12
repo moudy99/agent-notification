@@ -124,3 +124,7 @@ Restart Claude Code after installing.
 - Removes old package-installed `welcome.ps1` Claude hook entries to avoid duplicate notifications.
 - Stores only the notification display duration in `notification-config.json`.
 
+## Version
+
+Current package version: `1.0.10`
+
